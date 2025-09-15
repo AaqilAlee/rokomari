@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="74a93e75-dce7-4a83-a6b2-8e816cefdd4a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/add_to_cart.py" beforeDir="false" afterPath="$PROJECT_DIR$/add_to_cart.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/category&amp;filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/category&amp;filter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/handle_hover_items.py" beforeDir="false" afterPath="$PROJECT_DIR$/handle_hover_items.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/search_product.py" beforeDir="false" afterPath="$PROJECT_DIR$/search_product.py" afterDir="false" />

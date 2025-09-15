@@ -66,7 +66,7 @@ try:
         EC.element_to_be_clickable((By.XPATH, '//*[@id="js--categoryIds"]/div[1]/label'))
     )
 
-    # Scroll slightly below header (offset by 100px)
+
     driver.execute_script("window.scrollTo(0, arguments[0].getBoundingClientRect().top + window.scrollY - 100);",
                           category)
     time.sleep(1)
@@ -80,7 +80,7 @@ try:
     category_two = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//*[@id="js--categoryIds"]/div[3]/label'))
     )
-    # Scroll element slightly below sticky header (120px offset)
+
     driver.execute_script(
         "window.scrollTo(0, arguments[0].getBoundingClientRect().top + window.scrollY - 120);",
         category_two

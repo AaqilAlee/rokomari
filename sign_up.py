@@ -74,7 +74,7 @@ def fetch_latest_otp(imap_host, user, password, regex):
             else:
                 body = msg.get_payload(decode=True).decode(errors="ignore")
 
-            # DEBUG: print email body
+            # print email body
             print("Email body:\n", body)
 
             m = re.search(regex, body)

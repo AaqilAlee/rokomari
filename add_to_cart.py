@@ -27,7 +27,7 @@ try:
 except TimeoutException:
     print("❌ No popup banner found")
 
-# ------select category ------------------------
+# ------select category -------
 category = wait.until(
     EC.presence_of_element_located(
         (By.XPATH, "//a[h2[normalize-space(text())='Dates (Khejur)']]")
@@ -41,7 +41,7 @@ driver.execute_script(
 time.sleep(0.5)
 category.click()
 
-# ------select product ------------
+# ------select product -------
 product_item = wait.until(
     EC.presence_of_element_located(
         (By.XPATH, "//img[@alt='Saad Maryam Premium Al Madinah Dates 500gm image']")
@@ -55,7 +55,7 @@ driver.execute_script(
 time.sleep(0.5)
 product_item.click()
 
-# ------add to cart product ------------
+# ------add to cart product -------
 
 # Switch to the new tab
 driver.switch_to.window(driver.window_handles[-1])  # last opened tab
@@ -64,7 +64,7 @@ driver.switch_to.window(driver.window_handles[-1])  # last opened tab
 add_to_cart = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@product-id='450504' and contains(@class, 'add-to-cart-btn-details-page')]")))
 add_to_cart.click()
 
-# ------show the product ------------
+# ------show the product -------
 cart_page = wait.until(EC.element_to_be_clickable((By.ID, "js-cart-menu")))
 cart_page.click()
 

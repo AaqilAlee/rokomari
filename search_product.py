@@ -16,7 +16,7 @@ driver = webdriver.Chrome(service=service)
 driver.get("https://www.rokomari.com/")
 driver.maximize_window()
 
-# Wait until menu is visible (use a stable locator, not li[10])
+# Wait until menu is visible
 wait = WebDriverWait(driver, 10)
 
 search_product = WebDriverWait(driver, 5).until(
