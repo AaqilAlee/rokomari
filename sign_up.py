@@ -1,27 +1,25 @@
 import imaplib, email, re, time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup  # pip install beautifulsoup4
-
 
 # --- Config ---
 LOGIN_URL = "https://rokomari.com/login"
 IDENTIFIER = "mytestautomation11@gmail.com"
 IMAP_HOST = "imap.gmail.com"
 IMAP_USER = "mytestautomation11@gmail.com"
-IMAP_PASS = "dexq fzcn fhhm kjii"  # App Password
-OTP_REGEX = r"\b\d{6}\b"  # Adjust if OTP is 4 digits
+IMAP_PASS = "jlou okfw lgve qvdk"  # App Password
+OTP_REGEX = r"\b\d{4,6}\b"  # OTP can be 4-6 digits
 MAX_WAIT = 120  # wait up to 2 minutes
 POLL_INTERVAL = 5
 
 # --- Start browser ---
 service = Service(r"F:\drivers\chromedriver-win64\chromedriver.exe")
 driver = webdriver.Chrome(service=service)
-
-# Open site
 driver.get(LOGIN_URL)
 driver.maximize_window()
 
@@ -34,7 +32,7 @@ email_input.send_keys(IDENTIFIER)
 
 next_btn = driver.find_element(By.XPATH, '//*[@id="js--btn-next"]')
 next_btn.click()
-
+time.sleep(8)
 # --- Step 2: Fetch OTP from email ---
 def fetch_latest_otp(imap_host, user, password, regex):
     mail = imaplib.IMAP4_SSL(imap_host)
@@ -43,7 +41,7 @@ def fetch_latest_otp(imap_host, user, password, regex):
 
     end_time = time.time() + MAX_WAIT
     while time.time() < end_time:
-        status, data = mail.search(None, '(UNSEEN)')
+        status, data = mail.search(None, 'ALL')  # check all emails
         if status != "OK":
             time.sleep(POLL_INTERVAL)
             continue
@@ -53,7 +51,7 @@ def fetch_latest_otp(imap_host, user, password, regex):
             time.sleep(POLL_INTERVAL)
             continue
 
-        for mid in reversed(mail_ids):
+        for mid in reversed(mail_ids):  # check latest first
             status, msg_data = mail.fetch(mid, "(RFC822)")
             if status != "OK":
                 continue
@@ -63,19 +61,19 @@ def fetch_latest_otp(imap_host, user, password, regex):
             if msg.is_multipart():
                 for part in msg.walk():
                     ctype = part.get_content_type()
-                    if ctype == "text/plain" or ctype == "text/html":
+                    if ctype in ["text/plain", "text/html"]:
                         payload = part.get_payload(decode=True)
                         if payload:
-                            body = payload.decode(errors="ignore")
+                            text = payload.decode(errors="ignore")
                             if ctype == "text/html":
-                                # Remove HTML tags
-                                body = BeautifulSoup(body, "html.parser").get_text()
-                            break
+                                text = BeautifulSoup(text, "html.parser").get_text()
+                            body += text + "\n"
             else:
                 body = msg.get_payload(decode=True).decode(errors="ignore")
 
-            # print email body
-            print("Email body:\n", body)
+            # Debug print
+            print("Checking email ID:", mid.decode())
+            print("Email body preview:\n", body[:200])
 
             m = re.search(regex, body)
             if m:
@@ -99,8 +97,7 @@ otp_input = WebDriverWait(driver, 10).until(
 )
 otp_input.clear()
 otp_input.send_keys(otp)
-
-driver.find_element(By.NAME, "otp").click()
+otp_input.send_keys(Keys.RETURN)  # Submit OTP
 
 # --- Step 4: Confirm login successful ---
 try:
