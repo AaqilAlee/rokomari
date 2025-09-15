@@ -1,65 +1,112 @@
-import time
+import imaplib, email, re, time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from bs4 import BeautifulSoup  # pip install beautifulsoup4
 
-# Inline credentials (⚠️ not secure, just for testing)
-USER_EMAIL = "Mail"
-USER_PASS = "pass"
 
-driver = webdriver.Chrome()
-driver.get("https://www.rokomari.com/")
+# --- Config ---
+LOGIN_URL = "https://rokomari.com/login"
+IDENTIFIER = "mytestautomation11@gmail.com"
+IMAP_HOST = "imap.gmail.com"
+IMAP_USER = "mytestautomation11@gmail.com"
+IMAP_PASS = "dexq fzcn fhhm kjii"  # App Password
+OTP_REGEX = r"\b\d{6}\b"  # Adjust if OTP is 4 digits
+MAX_WAIT = 120  # wait up to 2 minutes
+POLL_INTERVAL = 5
+
+# --- Start browser ---
+service = Service(r"F:\drivers\chromedriver-win64\chromedriver.exe")
+driver = webdriver.Chrome(service=service)
+
+# Open site
+driver.get(LOGIN_URL)
 driver.maximize_window()
 
-wait = WebDriverWait(driver, 15)
+# --- Step 1: Enter email and click NEXT ---
+email_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.NAME, "username"))
+)
+email_input.clear()
+email_input.send_keys(IDENTIFIER)
 
-# Close popup if it shows
+next_btn = driver.find_element(By.XPATH, '//*[@id="js--btn-next"]')
+next_btn.click()
+
+# --- Step 2: Fetch OTP from email ---
+def fetch_latest_otp(imap_host, user, password, regex):
+    mail = imaplib.IMAP4_SSL(imap_host)
+    mail.login(user, password)
+    mail.select("inbox")
+
+    end_time = time.time() + MAX_WAIT
+    while time.time() < end_time:
+        status, data = mail.search(None, '(UNSEEN)')
+        if status != "OK":
+            time.sleep(POLL_INTERVAL)
+            continue
+
+        mail_ids = data[0].split()
+        if not mail_ids:
+            time.sleep(POLL_INTERVAL)
+            continue
+
+        for mid in reversed(mail_ids):
+            status, msg_data = mail.fetch(mid, "(RFC822)")
+            if status != "OK":
+                continue
+            msg = email.message_from_bytes(msg_data[0][1])
+
+            body = ""
+            if msg.is_multipart():
+                for part in msg.walk():
+                    ctype = part.get_content_type()
+                    if ctype == "text/plain" or ctype == "text/html":
+                        payload = part.get_payload(decode=True)
+                        if payload:
+                            body = payload.decode(errors="ignore")
+                            if ctype == "text/html":
+                                # Remove HTML tags
+                                body = BeautifulSoup(body, "html.parser").get_text()
+                            break
+            else:
+                body = msg.get_payload(decode=True).decode(errors="ignore")
+
+            # DEBUG: print email body
+            print("Email body:\n", body)
+
+            m = re.search(regex, body)
+            if m:
+                return m.group(0)
+
+        time.sleep(POLL_INTERVAL)
+
+    return None
+
+otp = fetch_latest_otp(IMAP_HOST, IMAP_USER, IMAP_PASS, OTP_REGEX)
+if not otp:
+    print("❌ OTP not found")
+    driver.quit()
+    raise SystemExit("No OTP received")
+
+print("✅ Got OTP:", otp)
+
+# --- Step 3: Enter OTP and verify ---
+otp_input = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.XPATH, '//*[@id="otp-login-form"]/div[1]/div/input'))
+)
+otp_input.clear()
+otp_input.send_keys(otp)
+
+driver.find_element(By.NAME, "otp").click()
+
+# --- Step 4: Confirm login successful ---
 try:
-    wait.until(
-        EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(@class,'modal_modalCloseButton')]")
-        )
-    ).click()
-except:
-    pass
-
-# Click Sign In
-sign_in = wait.until(
-    EC.presence_of_element_located((By.XPATH, "//a[contains(@class,'SignIn')]"))
-)
-driver.execute_script("arguments[0].click();", sign_in)
-
-# Click Google login
-wait.until(
-    EC.element_to_be_clickable((By.XPATH, "//button[contains(@class,'btn-social-google')]"))
-).click()
-
-# --- Switch to Google login popup ---
-main_window = driver.current_window_handle
-for handle in driver.window_handles:
-    if handle != main_window:
-        driver.switch_to.window(handle)
-        break
-
-# --- Enter email ---
-email_box = wait.until(EC.presence_of_element_located((By.ID, "identifierId")))
-email_box.send_keys(USER_EMAIL)
-
-# Click Next after email
-next_button_email = wait.until(
-    EC.element_to_be_clickable((By.XPATH, "//span[text()='Next']"))
-)
-next_button_email.click()
-
-# --- Enter password ---
-password_box = wait.until(EC.presence_of_element_located((By.NAME, "Passwd")))
-password_box.send_keys(USER_PASS)
-
-# Click Next after password
-next_button_pass = wait.until(
-    EC.element_to_be_clickable((By.XPATH, "//span[text()='Next']"))
-)
-next_button_pass.click()
-
-time.sleep(5)  # wait for login to process
+    dashboard = WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "div.dashboard"))
+    )
+    print("✅ Logged in successfully")
+except Exception as e:
+    print("⚠️ Login might have failed:", e)

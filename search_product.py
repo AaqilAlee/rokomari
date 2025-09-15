@@ -13,16 +13,16 @@ service = Service(r"F:\drivers\chromedriver-win64\chromedriver.exe")
 driver = webdriver.Chrome(service=service)
 
 #open site
-driver.get("https://dorjibari.com.bd/")
+driver.get("https://www.rokomari.com/")
 driver.maximize_window()
 
 # Wait until menu is visible (use a stable locator, not li[10])
 wait = WebDriverWait(driver, 10)
 
 search_product = WebDriverWait(driver, 5).until(
-    EC.element_to_be_clickable((By.ID,'Search-In-Modal-Classic'))
+    EC.element_to_be_clickable((By.NAME,'term'))
 )
-search_product.send_keys("panjabi" +Keys.RETURN )
+search_product.send_keys("ছাতা" +Keys.RETURN )
 
 
 

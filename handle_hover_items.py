@@ -20,9 +20,10 @@ wait = WebDriverWait(driver, 10)
 # --- ✅ Added Safe Popup Handling ---
 try:
     popup_banner = wait.until(EC.presence_of_element_located(
-        (By.XPATH, '//*[@id="ts-desktop-home-page"]/div/div/div[3]/div/button')
+        (By.XPATH, "//button[@aria-label='Close']")
     ))
     driver.execute_script("arguments[0].click();", popup_banner)
+
     print("✅ Popup banner clicked")
 except TimeoutException:
     print("❌ No popup banner found")
@@ -30,14 +31,14 @@ except TimeoutException:
 # ------------------------------
 
 book_item = wait.until(EC.presence_of_element_located(
-    (By.XPATH, '//*[@id="ts--desktop-menu"]/div[1]/a[2]')
+    (By.XPATH, "//a[text()='বই']")
 ))
 actions = ActionChains(driver)
 actions.move_to_element(book_item).click().perform()
 # book_item.click()
 
 menu_item_hover = wait.until(EC.presence_of_element_located(
-    (By.XPATH, '//*[@id="ts--desktop-menu"]/div[2]/div/div[1]/a/span[1]')
+    (By.ID, 'js--authors')
 ))
 
 # Hover over the menu
@@ -47,7 +48,7 @@ time.sleep(2)
 
 # Now locate a submenu item
 submenu_item = wait.until(EC.element_to_be_clickable((
-    By.XPATH, "//a[text()='হুমায়ূন আহমেদ']"
+    By.XPATH, "//a[text()=' হুমায়ূন আহমেদ ']"
 )))
 submenu_item.click()
 
